@@ -1,0 +1,44 @@
+PROCESS "Chat_Moderator_V1" {
+
+    CONFIG {
+        // Static resource declaration
+        integer max_risk = 50
+        probability confidence = 0.99
+        text src = "/input/stream.log"
+        text db_clean = "/output/validated.csv"
+        dictionary toxic_words = ["idiot", "scam", "hate"]
+    }
+
+    PIPELINE {
+        text msg = ""
+        integer risk_score = 0
+        verdict status = VALID
+
+        // Read input stream
+        INGEST msg FROM src
+
+        WHILE (msg != NULL) {
+            risk_score = 0
+            NORMALIZE msg
+
+            // Pattern matching
+            SCAN msg WITH toxic_words {
+                risk_score = risk_score + 25
+            }
+
+            // Decision logic
+            IF (risk_score >= max_risk) {
+                status = REJECT
+                LOG "Message rejected (High Risk)" LEVEL 3
+            } ELSE {
+                // Anonymization
+                IF (msg CONTAINS "@") {
+                    MASK msg WITH "*"
+                }
+                DISPATCH msg TO db_clean
+            }
+            
+            INGEST msg FROM src
+        }
+    }
+}

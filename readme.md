@@ -132,22 +132,6 @@ gcc lex.yy.c sentinel.tab.c main.c -o sentinel -lfl
 
 ./sentinel script.sent
 
-## Project Structure
-
-├── src/
-│   ├── sentinel.l       # Lexical rules (Flex)
-│   ├── sentinel.y       # Grammar rules (Bison)
-│   ├── sentinel.h       # Token definitions and structures
-│   ├── symbol_table.c   # Semantic analysis logic
-│   ├── symbol_table.h
-│   ├── quad.c           # Quadruplet generation
-│   └── main.c           # Entry point
-├── tests/
-│   ├── test_valid.sent  # Valid test script
-│   └── test_error.sent  # Script with semantic errors
-├── README.md
-└── Makefile
-
 ## Authors
 
 Realized by:  

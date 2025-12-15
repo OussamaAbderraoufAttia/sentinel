@@ -108,7 +108,7 @@ PROCESS "Chat_Moderator_V1" {
         }
     }
 }
-
+```
 ## Installation & Usage
 
 ### Prerequisites

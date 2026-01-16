@@ -1,0 +1,47 @@
+PROCESS "Chat_Moderator_V1" {
+    CONFIG {
+        integer max_risk = 50
+        integer count = 0
+        text src = "/input/stream.log"
+        text db_clean = "/output/validated.csv"
+        text db_quarantine = "/output/toxic.log"
+        dictionary toxic_words = ["idiot", "scam", "hate"]
+        dictionary alerts = ["help", "admin", "sos"]
+    }
+
+    PIPELINE {
+        LOG "Demarrage du traitement..." LEVEL 1
+        text msg = ""
+        integer risk_score = 0
+        verdict status = VALID
+
+        INGEST msg FROM src
+
+        WHILE (msg != NULL) {
+            risk_score = 0
+            status = VALID
+            NORMALIZE msg
+
+            SCAN msg WITH toxic_words {
+                risk_score = risk_score + 25
+            }
+
+            IF (risk_score >= max_risk) {
+                status = REJECT
+                LOG "Message rejete (High Risk)" LEVEL 3
+                DISPATCH msg TO db_quarantine
+            }
+            ELSE {
+                IF (msg CONTAINS "@") {
+                    MASK msg WITH "*"
+                    LOG "PII detectee et masquee" LEVEL 2
+                }
+                status = VALID
+                DISPATCH msg TO db_clean
+            }
+            count = count + 1
+            INGEST msg FROM src
+        }
+        LOG "Traitement termine avec succes." LEVEL 1
+    }
+}
